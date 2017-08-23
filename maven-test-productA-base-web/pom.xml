@@ -1,0 +1,148 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>cn.bigg</groupId>
+	<artifactId>maven-test-productA-base-web</artifactId>
+	<packaging>war</packaging>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<name>maven-test-productA-base-web Maven Webapp</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<bigg>郭巨侠_productA</bigg>
+		<maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>cn.bigg</groupId>
+			<artifactId>maven-test-base-jar</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>cn.bigg</groupId>
+			<artifactId>maven-test-base-web</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>cn.bigg</groupId>
+			<artifactId>maven-test-base-web</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<classifier>classes</classifier>
+		</dependency>
+
+		<!-- 测试依赖版本号传递 -->
+		<dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjweaver</artifactId>
+			<version>1.8.4</version>
+		</dependency>
+	</dependencies>
+
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<filters>
+					<filter>src/main/resources/deploy/dev.properties</filter>
+				</filters>
+			</build>
+		</profile>
+		<profile>
+			<id>test</id>
+			<build>
+				<filters>
+					<filter>src/main/resources/deploy/test.properties</filter>
+				</filters>
+			</build>
+		</profile>
+		<profile>
+			<id>product</id>
+			<build>
+				<filters>
+					<filter>src/main/resources/deploy/product.properties</filter>
+				</filters>
+			</build>
+		</profile>
+	</profiles>
+
+	<build>
+		<finalName>maven-test-productA-base-web</finalName>
+		<plugins>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<warName>maven-test-productA-base-web__${maven.build.timestamp}</warName>
+					<includeEmptyDirs>true</includeEmptyDirs>
+					<attachClasses>true</attachClasses>
+					<archiveClasses>true</archiveClasses>
+					<!-- 跳过父工程的lib等目录 -->
+					<dependentWarExcludes>WEB-INF/lib/*</dependentWarExcludes>
+					<webResources>
+						<resource>
+							<targetPath>WEB-INF/classes</targetPath>
+							<directory>src/main/resources</directory>
+							<filtering>true</filtering>
+						</resource>
+					</webResources>
+					<!-- 显式声明overlay，目的是为了配置：是否过滤父工程war中文件的占位符、是否跳过这个overlay、过滤&包含哪些目录。 
+						不写overlays标签也可以继承父工程资源文件，但不会替换占位符。 overlay标签的子标签列表： The <overlay> element 
+						can have the following child elements: id - the id of the overlay. If none 
+						is provided, the WAR Plugin will generate one. groupId - the groupId of the 
+						overlay artifact you want to configure. artifactId - the artifactId of the 
+						overlay artifact you want to configure. type - the type of the overlay artifact 
+						you want to configure. Default value is: war. classifier - the classifier 
+						of the overlay artifact you want to configure if multiple artifacts matches 
+						the groupId/artifactId. includes - the files to include. By default, all 
+						files are included. excludes - the files to exclude. By default, the META-INF 
+						directory is excluded. targetPath - the target relative path in the webapp 
+						structure, which is only available for overlays of type war. By default, 
+						the content of the overlay is added in the root structure of the webapp. 
+						skip - set to true to skip this overlay. Default value is: false. filtered 
+						- whether to apply filtering to this overlay. Default value is false. -->
+
+					<!-- <overlay> <groupId>cn.bigg</groupId> <artifactId>maven-test-base-web</artifactId> 
+						<includes> <include>**/*.jsp3</include> </includes> <filtered>true</filtered> 
+						</overlay> -->
+
+
+					<!-- 控制不过滤某些二进制文件，其他文件过滤 -->
+					<overlays>
+						<overlay>
+							<groupId>cn.bigg</groupId>
+							<artifactId>maven-test-base-web</artifactId>
+							<includes>
+								<include>**/*.woff</include>
+								<include>**/*.ttf</include>
+							</includes>
+							<filtered>false</filtered>
+						</overlay>
+						<overlay>
+							<groupId>cn.bigg</groupId>
+							<artifactId>maven-test-base-web</artifactId>
+							<includes>
+								<!-- 反选其他文件 -->
+								<include>%regex[.*(?!woff)]</include>
+								<include>%regex[.*(?!ttf)]</include>
+							</includes>
+							<excludes>
+								<!-- 排除lib -->
+								<exclude>WEB-INF/lib/*</exclude>
+							</excludes>
+							<filtered>true</filtered>
+						</overlay>
+					</overlays>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
